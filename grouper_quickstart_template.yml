@@ -2,15 +2,7 @@ apiVersion: template.openshift.io/v1
 kind: Template
 labels:
   template: grouper-quickstart-template
-message: |-
-  The following service(s) have been created in your project: ${DATABASE_SERVICE_NAME}.
-
-         Username: ${POSTGRESQL_USER}
-         Password: ${POSTGRESQL_PASSWORD}
-    Database Name: ${POSTGRESQL_DATABASE}
-   Connection URL: postgresql://${DATABASE_SERVICE_NAME}:5432/
-
-  For more information about using this template, including OpenShift considerations, see https://github.com/sclorg/postgresql-container/.
+message: Nope
 metadata:
   annotations:
     description: Nope
@@ -27,8 +19,6 @@ metadata:
     samples.operator.openshift.io/managed: "true"
   name: grouper-quickstart-template
   namespace: openshift
-  resourceVersion: "20773636"
-  uid: 8ea8786e-384a-403f-b823-46853457204a
 objects:
 - apiVersion: v1
   kind: Secret
