@@ -14,7 +14,6 @@ metadata:
     openshift.io/support-url: Nope
     samples.operator.openshift.io/version: 4.14.3
     tags: grouper
-  creationTimestamp: "2023-11-09T16:41:01Z"
   labels:
     samples.operator.openshift.io/managed: "true"
   name: grouper-quickstart-template
@@ -86,16 +85,6 @@ objects:
     resources:
       requests:
         storage: ${VOLUME_CAPACITY}
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    name: ${DATABASE_SERVICE_NAME}
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: ${VOLUME_CAPACITY}
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
@@ -149,9 +138,6 @@ objects:
               - /usr/libexec/check-container
             initialDelaySeconds: 5
             timeoutSeconds: 1
-          resources:
-            limits:
-              memory: ${MEMORY_LIMIT}
           securityContext:
             capabilities: {}
             privileged: false
@@ -212,11 +198,6 @@ objects:
             claimName: ${DATABASE_SERVICE_NAME}
   status: {}
 parameters:
-- description: Maximum amount of memory the container can use.
-  displayName: Memory Limit
-  name: MEMORY_LIMIT
-  required: true
-  value: 512Mi
 - description: The OpenShift Namespace where the ImageStream resides.
   displayName: Namespace
   name: NAMESPACE
