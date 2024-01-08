@@ -26,6 +26,7 @@ objects:
       template.openshift.io/expose-quickstart-pass: '{.data[''grouper-morphstring-encrypt-key'']}'
       template.openshift.io/expose-database-url: '{.data[''grouper-database-url'']}'
       template.openshift.io/expose-groupersystem-quickstart-pass: '{.data[''groupersystem-quickstart-pass'']}'
+      template.openshift.io/expose-groupersystem-quickstart-user: '{.data[''groupersystem-quickstart-user'']}'
   stringData:
     grouper-morphstring-encrypt-key: ${GROUPER_MORPHSTRING_ENCRYPT_KEY}
     grouper-database-url: ${GROUPER_DATABASE_URL}
