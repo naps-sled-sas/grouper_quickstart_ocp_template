@@ -1,47 +1,43 @@
 apiVersion: template.openshift.io/v1
 kind: Template
-labels:
-  template: grouper-quickstart-template
-message: Nope
 metadata:
+  name: "grouper-quickstart"
   annotations:
-    description: Nope
-    iconClass: icon-postgresql
-    openshift.io/display-name: Grouper Quickstart
-    openshift.io/documentation-url: Nope
-    openshift.io/long-description: Nope
-    openshift.io/provider-display-name: Nope
-    openshift.io/support-url: Nope
-    samples.operator.openshift.io/version: 4.14.3
-    tags: grouper
-  labels:
-    samples.operator.openshift.io/managed: "true"
-  name: grouper-quickstart-template
-  namespace: openshift
+    description: "Grouper Quickstart Deployment"
+    iconClass: "icon-java"
+    tags: "grouper"
 objects:
 - apiVersion: v1
   kind: Secret
   metadata:
+    name: postgresql
     annotations:
-      template.openshift.io/expose-database_name: '{.data[''database-name'']}'
       template.openshift.io/expose-password: '{.data[''database-password'']}'
       template.openshift.io/expose-username: '{.data[''database-user'']}'
-      template.openshift.io/groupersystem-quickstart-pass: '{.data[''groupersystem-quickstart-pass'']}'
-      template.openshift.io/groupersystem-quickstart-user: '{.data[''groupersystem-quickstart-user'']}'
-    name: ${DATABASE_SERVICE_NAME}
   stringData:
-    database-name: ${POSTGRESQL_DATABASE}
     database-password: ${POSTGRESQL_PASSWORD}
     database-user: ${POSTGRESQL_USER}
-    groupersystem-quickstart-pass: ${GROUPERSYSTEM_QUICKSTART_PASS}
-    groupersystem-quickstart-user: 'GrouperSystem'
+
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: grouper
+    annotations:
+      template.openshift.io/expose-quickstart-pass: '{.data[''grouper-morphstring-encrypt-key'']}'
+      template.openshift.io/expose-database-url: '{.data[''grouper-database-url'']}'
+      template.openshift.io/expose-groupersystem-quickstart-pass: '{.data[''groupersystem-quickstart-pass'']}'
+  stringData:
     grouper-morphstring-encrypt-key: ${GROUPER_MORPHSTRING_ENCRYPT_KEY}
+    grouper-database-url: ${GROUPER_DATABASE_URL}
+    groupersystem-quickstart-pass: ${GROUPERSYSTEM_QUICKSTART_PASS}
+    groupersystem-quickstart-user: "GrouperSystem"
+
 - apiVersion: v1
   kind: Service
   metadata:
     annotations:
       template.openshift.io/expose-uri: postgres://{.spec.clusterIP}:{.spec.ports[?(.name=="postgresql")].port}
-    name: ${DATABASE_SERVICE_NAME}
+    name: postgresql
   spec:
     ports:
     - name: postgresql
@@ -50,164 +46,128 @@ objects:
       protocol: TCP
       targetPort: 5432
     selector:
-      name: ${DATABASE_SERVICE_NAME}
+      name: postgresql
     sessionAffinity: None
     type: ClusterIP
   status:
     loadBalancer: {}
+
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    name: postgresql
+    labels:
+      name: postgresql
+  spec:
+    containers:
+    - name: postgresql
+      image: registry.redhat.io/rhel8/postgresql-10
+      env:
+        - name: POSTGRESQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgresql
+              key: database-user
+        - name: POSTGRESQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgresql
+              key: database-password
+        - name: POSTGRESQL_DATABASE
+          value: grouper
+      ports:
+        - containerPort: 5432
+          protocol: TCP
+
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    name: grouper
+    labels:
+      name: grouper
+  spec:
+    containers:
+      - name: grouper
+        image: docker.io/i2incommon/grouper:5.6.0
+        imagePullPolicy: IfNotPresent
+        args:
+          - quickstart
+        env:
+          - name: GROUPER_MORPHSTRING_ENCRYPT_KEY
+            valueFrom:
+              secretKeyRef:
+                key: grouper-morphstring-encrypt-key
+                name: grouper
+          - name: GROUPER_DATABASE_URL
+            value: jdbc:postgresql://postgresql:5432/grouper?currentSchema=public
+          - name: GROUPER_DATABASE_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: postgresql
+                key: database-user
+          - name: GROUPER_DATABASE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgresql
+                key: database-password
+          - name: GROUPERSYSTEM_QUICKSTART_PASS
+            valueFrom:
+              secretKeyRef:
+                key: groupersystem-quickstart-pass
+                name: grouper
+          - name: GROUPER_RUN_APACHE
+            value: 'true'
+          - name: GROUPER_RUN_TOMCAT
+            value: 'true'
+          - name: GROUPER_RUN_TOMEE
+            value: 'true'
+          - name: GROUPER_OPENSHIFT
+            value: 'true'
+        ports:
+          - containerPort: 8080
+            protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+              - /bin/bash
+              - '-c'
+              - curl --fail http://$(cat /etc/hostname):8080/grouper/status?diagnosticType=sources
+
 - apiVersion: v1
   kind: Service
   metadata:
-    annotations:
-      template.openshift.io/expose-uri: "http://{.spec.host}{.spec.path}"
-    name: grouper-ui
+    name: grouper
+    labels:
+      name: grouper
   spec:
-    path: grouper
     ports:
-    - name: grouper-app
+    - name: grouper
       nodePort: 0
       port: 8080
       protocol: TCP
       targetPort: 8080
     selector:
-      name: grouper-app
+      name: grouper
     sessionAffinity: None
     type: ClusterIP
   status:
     loadBalancer: {}
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    name: ${DATABASE_SERVICE_NAME}
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: ${VOLUME_CAPACITY}
-- apiVersion: apps/v1
-  kind: Deployment
+
+- apiVersion: route.openshift.io/v1
+  kind: Route
   metadata:
     annotations:
-      template.alpha.openshift.io/wait-for-ready: "true"
-    name: ${DATABASE_SERVICE_NAME}
+      template.openshift.io/expose-uri: http://{.spec.host}{.spec.path}
+    name: grouper
   spec:
-    replicas: 1
-    selector:
-      name: ${DATABASE_SERVICE_NAME}
-    strategy:
-      type: Recreate
-    template:
-      metadata:
-        labels:
-          name: ${DATABASE_SERVICE_NAME}
-      spec:
-        containers:
-        - name: postgresql
-          image: 'postgresql:${POSTGRESQL_VERSION}'
-          env:
-          - name: POSTGRESQL_USER
-            valueFrom:
-              secretKeyRef:
-                key: database-user
-                name: ${DATABASE_SERVICE_NAME}
-          - name: POSTGRESQL_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                key: database-password
-                name: ${DATABASE_SERVICE_NAME}
-          - name: POSTGRESQL_DATABASE
-            valueFrom:
-              secretKeyRef:
-                key: database-name
-                name: ${DATABASE_SERVICE_NAME}
-          imagePullPolicy: IfNotPresent
-          livenessProbe:
-            exec:
-              command:
-              - /usr/libexec/check-container
-              - --live
-            initialDelaySeconds: 120
-            timeoutSeconds: 10
-          ports:
-          - containerPort: 5432
-            protocol: TCP
-          readinessProbe:
-            exec:
-              command:
-              - /usr/libexec/check-container
-            initialDelaySeconds: 5
-            timeoutSeconds: 1
-          securityContext:
-            capabilities: {}
-            privileged: false
-          terminationMessagePath: /dev/termination-log
-          volumeMounts:
-          - mountPath: /var/lib/pgsql/data
-            name: ${DATABASE_SERVICE_NAME}-data
-        - name: grouper-app
-          image: docker.io/i2incommon/grouper:5.6.0
-          imagePullPolicy: IfNotPresent
-          args:
-            - quickstart
-          env:
-            - name: GROUPER_MORPHSTRING_ENCRYPT_KEY
-              valueFrom:
-              secretKeyRef:
-                key: grouper-morphstring-encrypt-key
-                name: ${DATABASE_SERVICE_NAME}
-            - name: GROUPER_DATABASE_URL
-              value: 'jdbc:postgresql://172.30.2.68:5432/grouper?currentSchema=public'
-            - name: GROUPER_DATABASE_USERNAME
-              valueFrom:
-              secretKeyRef:
-                key: database-user
-                name: ${DATABASE_SERVICE_NAME}
-            - name: GROUPER_DATABASE_PASSWORD
-              valueFrom:
-              secretKeyRef:
-                key: database-password
-                name: ${DATABASE_SERVICE_NAME}
-            - name: GROUPERSYSTEM_QUICKSTART_PASS
-              valueFrom:
-              secretKeyRef:
-                key: groupersystem-quickstart-pass
-                name: ${DATABASE_SERVICE_NAME}
-            - name: GROUPER_RUN_APACHE
-              value: 'true'
-            - name: GROUPER_RUN_TOMCAT
-              value: 'true'
-            - name: GROUPER_RUN_TOMEE
-              value: 'true'
-            - name: GROUPER_OPENSHIFT
-              value: 'true'
-          ports:
-            - containerPort: 8080
-              protocol: TCP
-          readinessProbe:
-            exec:
-              command:
-                - /bin/bash
-                - '-c'
-                - curl --fail http://$(cat/etc/hostname):8080/grouper/status?diagnosticType=sources
-        dnsPolicy: ClusterFirst
-        restartPolicy: Always
-        volumes:
-        - name: ${DATABASE_SERVICE_NAME}-data
-          persistentVolumeClaim:
-            claimName: ${DATABASE_SERVICE_NAME}
-  status: {}
+    path: /grouper
+    to:
+      kind: Service
+      name: grouper
+    port:
+      targetPort: 8080
+
 parameters:
-- description: The OpenShift Namespace where the ImageStream resides.
-  displayName: Namespace
-  name: NAMESPACE
-  value: grouper
-  required: true
-- description: The name of the OpenShift Service exposed for the database.
-  displayName: Database Service Name
-  name: DATABASE_SERVICE_NAME
-  required: true
-  value: postgresql
 - description: Username for PostgreSQL user that will be used for accessing the database.
   displayName: PostgreSQL Connection Username
   name: POSTGRESQL_USER
@@ -219,21 +179,6 @@ parameters:
   generate: expression
   name: POSTGRESQL_PASSWORD
   required: true
-- description: Name of the PostgreSQL database accessed.
-  displayName: PostgreSQL Database Name
-  name: POSTGRESQL_DATABASE
-  required: true
-  value: grouper
-- description: Volume space available for data, e.g. 512Mi, 2Gi.
-  displayName: Volume Capacity
-  name: VOLUME_CAPACITY
-  required: true
-  value: 10Gi
-- description: Version of PostgreSQL image to be used (10-el7, 10-el8, or latest).
-  displayName: Version of PostgreSQL Image
-  name: POSTGRESQL_VERSION
-  required: true
-  value: 10-el8
 - description: Grouper morphstring encrypt key
   displayName: Grouper morphstring encrypt key
   from: '[a-zA-Z0-9]{16}'
