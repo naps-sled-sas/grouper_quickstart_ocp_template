@@ -18,3 +18,4 @@ oc apply -f grouper_quickstart.yml
 
 # ToDo
 - Look into generating a random string instead of hardcoding the password in the yml.
+- Make real resource quotas instead of just making the linter happy.
