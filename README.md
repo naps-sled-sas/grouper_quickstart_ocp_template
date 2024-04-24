@@ -13,7 +13,7 @@ oc new-project grouper
 oc apply -f grouper_quickstart.yml
 ```
 
-3) Navigate to the URL exposed by the "grouper" route created and log in with the username "GrouperSystem" and the password found in the grouper/groupersystem-quickstart-pass secret.
+3) Navigate to the URL exposed by the "grouper" route created and log in with the username "GrouperSystem" and the password found in the grouper/groupersystem-quickstart-pass secret. (Ensure your browser is using http and not defaulting to https)
 
 
 # ToDo
