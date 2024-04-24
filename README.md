@@ -8,14 +8,13 @@
 oc new-project grouper
 ```
 
-2) Create the project using the provided grouper_quickstart_template.yml
+2) Deploy the resources
 ```
-oc create -f grouper_quickstart_template.yml
+oc apply -f grouper_quickstart.yml
 ```
 
-3) Instantiate the template
-Web UI
-Project Page -> "+Add" -> "All Services" -> search "grouper-quickstart"
-Accept the defaults unless you have a good reason not to
+3) Navigate to the URL exposed by the "grouper" route created and log in with the username "GrouperSystem" and the password found in the grouper/groupersystem-quickstart-pass secret.
 
-4) Navigate to the URL exposed by the "grouper" route created and log in with the username "GrouperSystem" and the generated password found in the grouper/groupersystem-quickstart-pass secret.
+
+# ToDo
+- Look into generating a random string instead of hardcoding the password in the yml.
