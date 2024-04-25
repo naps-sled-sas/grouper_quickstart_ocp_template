@@ -33,7 +33,6 @@ apiVersion: apps/v1 # postgresql deployment
 kind: Deployment
 metadata:
   name: postgresql
-  #namespace: default
 spec:
   replicas: 1
   selector:
@@ -109,7 +108,6 @@ apiVersion: apps/v1 # grouper deployment
 kind: Deployment
 metadata:
   name: grouper
-  #namespace: default
 spec:
   replicas: 1
   selector:
