@@ -1,5 +1,5 @@
 # What is this?
-- An OpenShift template for deploying a containerized deployment of [Grouper's](https://incommon.org/software/grouper/#:~:text=Software%3A%20An%20enterprise%20group%20and,as%20a%20person's%20role%20changes.) quickstart mode
+- An OpenShift template for deploying a containerized deployment of [Grouper's](https://incommon.org/software/grouper/) quickstart mode
 
 
 # How to use?
