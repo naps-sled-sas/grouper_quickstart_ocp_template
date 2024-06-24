@@ -1,0 +1,7 @@
+kind: Kustomization
+commonLabels:
+  app: grouper
+resources:
+- grouper-service.yml
+- grouper-deployment.yml
+- grouper-route.yml

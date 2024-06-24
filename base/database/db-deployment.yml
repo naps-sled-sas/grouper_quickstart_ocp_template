@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql
+  template:
+    metadata:
+      labels:
+        app: postgresql
+    spec:
+      containers:
+      - name: postgresql
+        image: registry.redhat.io/rhel8/postgresql-10
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: 4Gi
+            cpu: 4
+          requests:
+            memory: 2Gi
+            cpu: 2
+        env:
+          - name: POSTGRESQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: postgresql
+                key: database-user
+          - name: POSTGRESQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgresql
+                key: database-password
+          - name: POSTGRESQL_DATABASE
+            value: grouper
+        ports:
+          - containerPort: 5432
+            protocol: TCP

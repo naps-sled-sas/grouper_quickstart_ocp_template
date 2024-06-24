@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grouper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grouper
+  template:
+    metadata:
+      labels:
+        app: grouper
+    spec:
+      containers:
+      - name: grouper
+        image: docker.io/i2incommon/grouper:5.6.0
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: 4Gi
+            cpu: 4
+          requests:
+            memory: 2Gi
+            cpu: 2
+        args:
+          - quickstart
+        env:
+          - name: GROUPER_MORPHSTRING_ENCRYPT_KEY
+            valueFrom:
+              secretKeyRef:
+                key: grouper-morphstring-encrypt-key
+                name: grouper
+          - name: GROUPER_DATABASE_URL
+            value: jdbc:postgresql://postgresql:5432/grouper?currentSchema=public
+          - name: GROUPER_DATABASE_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: postgresql
+                key: database-user
+          - name: GROUPER_DATABASE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgresql
+                key: database-password
+          - name: GROUPERSYSTEM_QUICKSTART_PASS
+            valueFrom:
+              secretKeyRef:
+                key: groupersystem-quickstart-pass
+                name: grouper
+          - name: GROUPER_RUN_APACHE
+            value: 'true'
+          - name: GROUPER_RUN_TOMCAT
+            value: 'true'
+          - name: GROUPER_RUN_TOMEE
+            value: 'true'
+          - name: GROUPER_OPENSHIFT
+            value: 'true'
+        ports:
+          - containerPort: 8080
+            protocol: TCP

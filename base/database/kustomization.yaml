@@ -1,0 +1,6 @@
+kind: Kustomization
+commonLabels:
+  app: postgresql
+resources:
+- db-service.yml
+- db-deployment.yml
