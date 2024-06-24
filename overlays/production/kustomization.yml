@@ -1,0 +1,8 @@
+kind: Kustomization
+resources:
+- ../../base/
+patches:
+- path: patch-replicas.yml
+  target:
+    kind: Deployment
+    name: postgresql

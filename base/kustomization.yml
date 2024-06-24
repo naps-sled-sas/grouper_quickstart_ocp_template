@@ -1,0 +1,14 @@
+kind: Kustomization
+resources:
+- database
+- grouper
+secretGenerator:
+- name: postgresql
+  literals:
+    - database-user="grouper"
+    - database-password="xU14St?prlVUs5tAJop="
+- name: grouper
+  literals:
+    - grouper-morphstring-encrypt-key="xU14St?prlVUs5tAJop="
+    - groupersystem-quickstart-pass="xU14St?prlVUs5tAJop="
+    - groupersystem-quickstart-user="GrouperSystem"
