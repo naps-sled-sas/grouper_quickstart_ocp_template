@@ -4,3 +4,4 @@ commonLabels:
 resources:
 - db-service.yml
 - db-deployment.yml
+- db-pvc.yml

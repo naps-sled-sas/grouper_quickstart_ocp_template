@@ -42,7 +42,7 @@ spec:
         volumeMounts:
           - mountPath: /var/lib/pgsql/data
             name: db-data
-        volumes:
-        - name: db-data
-          persistentVolumeClaim:
-            claimName: db-data
+      volumes:
+      - name: db-data
+        persistentVolumeClaim:
+          claimName: db-data
