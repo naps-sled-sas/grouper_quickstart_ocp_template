@@ -1,6 +1,12 @@
 # What is this?
 - An OpenShift template for deploying a containerized deployment of [Grouper's](https://incommon.org/software/grouper/) quickstart mode
 
+- This will deploy the following resources
+    - Postgresql pod(s) with a 1gb PVC
+    - Grouper app pod
+    - 2x secrets
+    - 2x services
+    - 1x route
 
 # How to use?
 1) Create a blank OCP project
