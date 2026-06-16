@@ -2,6 +2,7 @@
 - An OpenShift template for deploying a containerized deployment of [Grouper's](https://incommon.org/software/grouper/)
 
 - This will deploy the following resources
+    - 1x Project "grouper"
     - Postgresql pod(s) with a 1gb PVC
     - Grouper app pod
     - 2x secrets
