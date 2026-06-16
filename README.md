@@ -25,9 +25,3 @@ oc apply -k base
 ```
 oc apply -k overlays/production
 ```
-
-# Troubleshooting
-- The grouper app doesn't very gracefully handle a failed DB connection. If it errors out or displays Tomcat warnings kill the pod and let it rebuild it likely lost it's race condition with Postgresql being available.
-
-# ToDo
-- Look into generating a random string instead of hardcoding the password in the yml.

@@ -12,19 +12,32 @@ spec:
       labels:
         app: grouper
     spec:
+      initContainers:
+      - name: wait-for-postgresql
+        image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+        command:
+          - bash
+          - -c
+          - |
+            echo "Waiting for PostgreSQL to be ready..."
+            until timeout 1 bash -c 'cat < /dev/null > /dev/tcp/postgresql/5432'; do
+              echo "PostgreSQL is unavailable - sleeping"
+              sleep 2
+            done
+            echo "PostgreSQL is up - executing command"
       containers:
       - name: grouper
-        image: docker.io/i2incommon/grouper:5.6.0
+        image: docker.io/i2incommon/grouper:7.1.0
         imagePullPolicy: Always
         resources:
           limits:
             memory: 4Gi
             cpu: 4
           requests:
-            memory: 2Gi
-            cpu: 2
+            memory: 1Gi
+            cpu: 1
         args:
-          - quickstart
+          - ui
         env:
           - name: GROUPER_MORPHSTRING_ENCRYPT_KEY
             valueFrom:
@@ -48,14 +61,15 @@ spec:
               secretKeyRef:
                 key: groupersystem-quickstart-pass
                 name: grouper
-          - name: GROUPER_RUN_APACHE
-            value: 'true'
-          - name: GROUPER_RUN_TOMCAT
-            value: 'true'
-          - name: GROUPER_RUN_TOMEE
-            value: 'true'
           - name: GROUPER_OPENSHIFT
             value: 'true'
+          - name: GROUPER_UI_ONLY
+            value: 'true'
+          - name: GROUPER_AUTO_DDL_UPTOVERSION
+            value: '7.*.*'
+          - name: GROUPER_UI_GROUPER_AUTH
+            value: 'true'
         ports:
-          - containerPort: 8080
+          - containerPort: 8443
             protocol: TCP
+            name: https

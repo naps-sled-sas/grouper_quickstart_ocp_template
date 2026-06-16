@@ -6,11 +6,11 @@ metadata:
     name: grouper
 spec:
   ports:
-  - name: grouper
+  - name: https
     nodePort: 0
-    port: 8080
+    port: 8443
     protocol: TCP
-    targetPort: 8080
+    targetPort: 8443
   selector:
     app: grouper
   sessionAffinity: None
