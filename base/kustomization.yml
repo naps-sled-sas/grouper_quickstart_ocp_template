@@ -1,5 +1,6 @@
 kind: Kustomization
 resources:
+- namespace.yml
 - database
 - grouper
 secretGenerator:
